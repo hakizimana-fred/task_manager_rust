@@ -25,7 +25,11 @@ async fn hello() -> impl Responder {
 async fn read_task(path: web::Path<u32>) -> impl Responder {
     let task_id = path.into_inner();
     let tasks = TASKS.lock().unwrap();
-    HttpResponse::Ok().body(task_id.to_string())
+
+    match tasks.iter().find(|t| t.id == task_id) {
+        Some(task) => HttpResponse::Ok().json(task),
+        None => HttpResponse::NotFound().json(json!({"error": "Task not found"})),
+    }
 }
 
 async fn create_task(task: web::Json<Task>) -> impl Responder {
